@@ -40,7 +40,7 @@ async def main(url: str, aprobar: bool) -> None:
         resultados = await asyncio.gather(*(correr(cliente, c, aprobar) for c in CONSULTAS))
 
     for job in resultados:
-        print(f"{job['job_id'][:8]}  {job['estado']:<16} {job['segundos']:>6}s  {job.get('orden_id', '')}")
+        print(f"{job['job_id'][:8]}  {job['estado']:<16} {job['segundos']:>6}s  {job.get('orden_id') or ''}")
         print(f"   {job.get('resultado') or job.get('error') or job.get('pendiente')}\n")
 
     tiempos = sorted(j["segundos"] for j in resultados)

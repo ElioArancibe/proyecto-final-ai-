@@ -90,7 +90,7 @@ class Worker:
 async def main() -> None:
     settings = get_settings()
     provider = iniciar_trazas(settings)
-    redis = Redis.from_url(settings.redis_url, decode_responses=True)
+    redis = Redis.from_url(settings.redis_url, decode_responses=True, socket_timeout=30)
     conocimiento = BaseConocimiento(settings)
     await conocimiento.preparar()
 

@@ -42,7 +42,7 @@ async def aprobar(job_id: str, aprobacion: Aprobacion, request: Request) -> Tare
         raise HTTPException(404, "No existe la tarea")
     if job["estado"] != EstadoJob.WAITING_APPROVAL:
         raise HTTPException(409, f"La tarea no está esperando aprobación (estado: {job['estado']})")
-    if not await redis.set(f"tp7:aprobacion:{job_id}", 1, nx=True, ex=3600):
+    if not await redis.set(f"compras:aprobacion:{job_id}", 1, nx=True, ex=3600):
         raise HTTPException(409, "La tarea ya recibió una decisión")
 
     decision = aprobacion.model_dump()

@@ -26,3 +26,20 @@ async def test_busqueda_hibrida_fusiona_bm25_y_vectorial(monkeypatch):
     assert ids[0] == "politica_compras::c00"
     assert "logistica::c00" in ids
     await base.cerrar()
+
+
+async def test_si_falla_la_vectorial_queda_bm25(monkeypatch):
+    base = BaseConocimiento(get_settings())
+
+    async def caida(consulta, n):
+        raise RuntimeError("503 UNAVAILABLE")
+
+    async def sin_espera(segundos):
+        pass
+
+    monkeypatch.setattr(base, "_buscar_vectorial", caida)
+    monkeypatch.setattr("app.rag.asyncio.sleep", sin_espera)
+    resultado = await base.buscar("penalidad por demora de ImportPC", k=2)
+
+    assert resultado[0].doc_id == "proveedores_homologados"
+    await base.cerrar()

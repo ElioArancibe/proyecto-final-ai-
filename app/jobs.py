@@ -5,8 +5,8 @@ from enum import StrEnum
 
 from redis.asyncio import Redis
 
-COLA = "tp7:cola"
-ORDENES = "tp7:ordenes"
+COLA = "compras:cola"
+ORDENES = "compras:ordenes"
 CAMPOS_JSON = {"pendiente", "orden", "decision"}
 
 
@@ -19,7 +19,7 @@ class EstadoJob(StrEnum):
 
 
 def _clave(job_id: str) -> str:
-    return f"tp7:job:{job_id}"
+    return f"compras:job:{job_id}"
 
 
 def _ahora() -> str:

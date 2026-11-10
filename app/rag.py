@@ -99,6 +99,17 @@ class BaseConocimiento:
         respuesta = await self.indice.query(top_k=n, vector=vector, namespace=self.settings.pinecone_namespace)
         return [m.id for m in respuesta.matches if m.id in self.por_id]
 
+    async def _buscar_vectorial_con_reintentos(self, consulta: str, n: int, intentos: int = 3) -> list[str]:
+        for intento in range(1, intentos + 1):
+            try:
+                return await self._buscar_vectorial(consulta, n)
+            except Exception as exc:
+                if intento == intentos:
+                    # sin embeddings el RAG sigue andando solo con BM25 en vez de tirar abajo la tarea
+                    log.warning("búsqueda vectorial falló (%s), sigo solo con BM25", str(exc)[:120])
+                    return []
+                await asyncio.sleep(2**intento)
+
     def _buscar_bm25(self, consulta: str, n: int) -> list[str]:
         scores = self.bm25.get_scores(_tokens(consulta))
         orden = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
@@ -108,7 +119,7 @@ class BaseConocimiento:
         k = k or self.settings.top_k
         n = k * 3
         vectorial, lexico = await asyncio.gather(
-            self._buscar_vectorial(consulta, n),
+            self._buscar_vectorial_con_reintentos(consulta, n),
             asyncio.to_thread(self._buscar_bm25, consulta, n),
         )
         # reciprocal rank fusion: se combinan posiciones, no los puntajes de cada buscador
